@@ -1,6 +1,8 @@
 import requests
 import re
 from bs4 import BeautifulSoup
+
+from videogame_model import VideogameModel
 from enum_platforms import Platform
 
 def get_data(platform: str, page: int) -> list[dict]:
@@ -43,13 +45,11 @@ def get_data(platform: str, page: int) -> list[dict]:
 		}
 
 		try:
-			from videogame_model import VideogameModel
 			videogame = VideogameModel(**data_game)
 			games_data.append(videogame.dict())
 		except Exception as e:
 			print(f"Error de validación '{data_game['title']}': {e}")
 			continue
-		games_data.append(data_game)
 
 	return games_data
 	
