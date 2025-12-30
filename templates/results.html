@@ -3,187 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados - Buscador de Videojuegos</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 2em;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            color: #555;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1em;
-            background-color: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        select:hover {
-            border-color: #667eea;
-            background-color: white;
-        }
-        
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
 
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-bottom: 15px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .btn-info {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        
-        .results-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #eee;
-        }
-        
-        .results-title {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        
-        .json-container {
-            background-color: #f8f9fa;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        pre {
-            margin: 0;
-            color: #333;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .buttons-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
+	<link rel="stylesheet" href="../static/styles/base.css" />
+	<link rel="stylesheet" href="../static/styles/results.css" />
 
-        #pageDisplay {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            font-weight: 700;
-            font-size: 1.2em;
-            padding: 10px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 10px;
-            min-width: 40px;
-        }
-        
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-        
-        .message.error {
-            background-color: #fee;
-            color: #c33;
-            border-left: 4px solid #c33;
-        }
-        
-        .hidden {
-            display: none;
-        }
-    </style>
+    <title>Resultados - JSONs de Videojuegos</title>
 </head>
 <body>
     <div class="container">
-        <h1><a href="/">🎮 Buscador de Videojuegos</a></h1>
+        <h1><a href="/">Games' JSON 🎮</a></h1>
+        <h3>~ Scrapping de datos de Videojuegos ~</h3>
         
-        <form method="POST" action="/search/0" id="searchForm">
+        <form method="POST" action="/search/1" id="searchForm">
             <div class="form-group">
                 <label for="platform">Selecciona una plataforma:</label>
                 <select name="platform" id="platform" required>
@@ -203,7 +34,7 @@
         </form>
         
         <div class="results-section">
-            <h2 class="results-title">📋 Resultados JSON</h2>
+            <h2 class="results-title"></h2>
             
             <div id="messageContainer"></div>
             
@@ -211,19 +42,31 @@
                 <pre id="jsonDisplay">{{ data | tojson(indent=2) }}</pre>
             </div>
             
-            <div class="buttons-container">
-                <button type="button" class="btn btn-info" onclick="changePage('previous')">
-                    Página Anterior ⬅️
-                </button>
+            <div class="page-buttons-container">
+                <form method="POST" action="/search/{{ page }}" style="display: contents;">
+                    <input type="hidden" name="platform" value="{{ platform }}">
+                    <input type="hidden" name="direction" value="previous">
+                    <button type="submit" class="btn btn-info" {% if page == 1 %}disabled{% endif %}>
+                        Página Anterior ⬅️
+                    </button>
+                </form>
+
                 <span id="pageDisplay">{{ page }}</span>
-                <button type="button" class="btn btn-info" onclick="changePage('next')">
-                    ➡️ Siguiente Página
-                </button>
+
+                <form method="POST" action="/search/{{ page }}" style="display: contents;">
+                    <input type="hidden" name="platform" value="{{ platform }}">
+                    <input type="hidden" name="direction" value="next">
+                    <button type="submit" class="btn btn-info">
+                        ➡️ Siguiente Página
+                    </button>
+                </form>
+            </div>
+            <div class="buttons-container">
                 <button type="button" class="btn btn-secondary" onclick="downloadJson()">
                     💾 Descargar JSON
                 </button>
                 <button type="button" class="btn btn-success" onclick="sendDB()">
-                    🗄️ Enviar a Base de Datos
+                    🗄️ Registrar Datos
                 </button>
             </div>
         </div>
@@ -231,9 +74,10 @@
     
     <script>
         const jsonData = {{ data | tojson }};
-        const actualPlatform = '{{ platform }}';
-        let page = {{ page }};
-        
+        const lengthJSON = jsonData.length;
+
+        document.querySelector('.results-title').textContent = `📋 Resultados JSON: ${lengthJSON}`;
+
         function showMessage(text, type) {
             const container = document.getElementById('messageContainer');
             container.innerHTML = `<div class="message ${type}">${text}</div>`;
@@ -288,48 +132,11 @@
                     showMessage('✅ ' + result.message, 'success');
                 } else {
                     showMessage('❌ Error: ' + result.error, 'error');
+                    console.error('Error details:', result.error);
                 }
             } catch (error) {
                 showMessage('❌ Error al enviar: ' + error.message, 'error');
-            }
-        }
-        
-        async function changePage(direction) {
-            if (page === 0 && direction === 'previous') return;
-
-            try {
-                const response = await fetch(`/search/${page}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ platform: actualPlatform, direction: direction })
-                });
-                
-                const result = await response.json();
-
-                console.log(result);
-                
-                if (response.ok) {
-                    // Actualizar el JSON mostrado
-                    document.getElementById('jsonDisplay').textContent = JSON.stringify(result.data, null, 2);
-                    
-                    // Actualizar el selector
-                    document.getElementById('platform').value = result.platform;
-                    
-                    // Actualizar variable global
-                    jsonData.length = 0;
-                    jsonData.push(...result.data);
-                    
-                    // Actualizar el número de página en el span
-                    document.getElementById('pageDisplay').textContent = result.page;
-                    
-                    showMessage('✅ Nuevo JSON cargado exitosamente', 'success');
-                } else {
-                    showMessage('❌ Error al obtener nuevo JSON', 'error');
-                }
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
+                console.error('Error details:', error);
             }
         }
     </script>

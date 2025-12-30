@@ -1,10 +1,8 @@
 from flask import Flask, render_template, request, jsonify, send_file
-import json
-import os
-from datetime import datetime
 
 from scrapper import get_data
-from send_videogames import post_games
+from post_videogame import post_game
+from json_maker import create_json
 
 app = Flask(__name__)
 
@@ -14,18 +12,19 @@ def index():
 
 @app.route('/search/<int:page>', methods=['POST'])
 def search(page):
-    platform = request.form.get('platform', '') or request.json.get('platform', '')
-    # direction = request.get_json().get('direction', '')
+    platform = request.form.get('platform', '')
+    direction = request.form.get('direction', '')
+    page -= 1
     
     if not platform:
         return render_template('index.html', error="Por favor selecciona una plataforma")
     
-    # if direction:
-    #     page += 1 if direction == 'next' else -1
+    if direction:
+        page += 1 if direction == 'next' else -1
     
     data = get_data(platform, page)
     
-    return render_template('results.html', platform=platform, data=data, page=page)
+    return render_template('results.html', platform=platform, data=data, page=page + 1)
 
 @app.route('/download', methods=['POST'])
 def download_json():
@@ -34,13 +33,7 @@ def download_json():
     if not data or 'data' not in data:
         return jsonify({"error": "No hay datos para descargar"}), 400
     
-    filename = f"videogames_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    filepath = os.path.join('temp', filename)
-    
-    os.makedirs('temp', exist_ok=True)
-    
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data['data'], f, ensure_ascii=False, indent=2)
+    filepath, filename = create_json(data['data'])
     
     return send_file(filepath, as_attachment=True, download_name=filename)
 
@@ -51,18 +44,23 @@ def send_data():
     if not data or 'data' not in data:
         return jsonify({"error": "No hay datos para enviar"}), 400
     
-
+    games = data['data']
+    success_count = 0
+    
     try:
-        registers_count = post_games(data['data'])
+        for game in games:
+            result = post_game(game)
+            if result == "success":
+                success_count += 1
         
         return jsonify({
             "success": True,
-            "message": f"Se enviaron {registers_count} registros a la base de data"
+            "message": f"Se enviaron {success_count} registros a la base de datos"
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)
 
