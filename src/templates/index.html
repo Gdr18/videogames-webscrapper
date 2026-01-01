@@ -17,7 +17,7 @@
 			<div class="error">{{ error }}</div>
 			{% endif %}
 
-			<form method="POST" action="/search/1">
+			<form method="POST" action="/search/1" onsubmit="showContainer('loader')">
 				<div class="form-group">
 					<label for="platform">Selecciona una plataforma:</label>
 					<select name="platform" id="platform" required>
@@ -35,7 +35,17 @@
 
 				<button type="submit" class="btn">🔍 Buscar</button>
 			</form>
+
+        	<div class="loader-container"><span class="loader" hidden></span></div>
+
 		</div>
+
+		<script>
+			function showContainer(className) {
+				document.querySelector(`.${className}`).hidden = false;
+			}
+		</script>
+
 	</body>
 </html>
 

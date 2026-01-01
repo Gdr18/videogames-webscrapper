@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import Literal
 
 class VideogameModel(BaseModel):
@@ -13,4 +14,4 @@ class VideogameModel(BaseModel):
 	pegi: str = Field(required=True, pattern=r"^\+\d+\b")
 	platform: Literal["Nintendo Switch", "Nintendo Switch 2", "PlayStation 4", "PlayStation 5", "Xbox Series", "Xbox One", "PC", "Android"] = Field(required=True)
 	price: float = Field(required=True, gt=0)
-	release: str = Field(required=True, pattern=r"^(0?[1-9]|[12][0-9]|3[01]) de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) de \d{4}$")
+	release: int = Field(required=True, range=(1975, datetime.now().year))

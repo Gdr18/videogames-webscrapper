@@ -33,7 +33,7 @@
             <button type="submit" class="btn">🔍 Buscar</button>
         </form>
 
-        <div class="loader" hidden></div>
+        <div class="loader-container"><span class="loader" hidden></span></div>
 
         <div class="results-section">
             <h2 class="results-title"></h2>
@@ -43,32 +43,34 @@
             <div class="json-container">
                 <pre id="jsonDisplay">{{ data | tojson(indent=2) }}</pre>
             </div>
-            
-            <div class="page-buttons-container">
-                <form method="POST" action="/search/{{ page }}" style="display: contents;">
-                    <input type="hidden" name="platform" value="{{ platform }}">
-                    <input type="hidden" name="direction" value="previous">
-                    <button type="submit" class="btn btn-info" {% if page == 1 %}disabled{% endif %}>
-                        Página Anterior ⬅️
-                    </button>
-                </form>
 
-                <span id="pageDisplay">{{ page }}</span>
-
-                <form method="POST" action="/search/{{ page }}" style="display: contents;">
-                    <input type="hidden" name="platform" value="{{ platform }}">
-                    <input type="hidden" name="direction" value="next">
-                    <button type="submit" class="btn btn-info">
-                        ➡️ Siguiente Página
-                    </button>
-                </form>
-            </div>
             <div class="buttons-container">
-                <button type="button" class="btn btn-secondary" onclick="downloadJson()">
-                    💾 Descargar JSON
+                <button title="Descargar JSON" type="button" class="btn btn-info btn-save" onclick="downloadJson()">
+                    💾
                 </button>
-                <button type="button" class="btn btn-success" onclick="sendDB()">
-                    🗄️ Registrar Datos
+
+                <div class="page-buttons-container">
+                    <form method="POST" action="/search/{{ page }}" style="display: contents;">
+                        <input type="hidden" name="platform" value="{{ platform }}">
+                        <input type="hidden" name="direction" value="previous">
+                        <button title="Página Anterior" type="submit" class="btn btn-info" {% if page == 1 %}disabled{% endif %}>
+                            ⬅️
+                        </button>
+                    </form>
+
+                    <span id="pageDisplay">{{ page }}</span>
+
+                    <form method="POST" action="/search/{{ page }}" style="display: contents;">
+                        <input type="hidden" name="platform" value="{{ platform }}">
+                        <input type="hidden" name="direction" value="next">
+                        <button title="Página Siguiente" type="submit" class="btn btn-info">
+                            ➡️
+                        </button>
+                    </form>
+                </div>
+
+                <button title="Registrar Base de Datos" type="button" class="btn btn-info btn-send" onclick="sendDB()">
+                    🗄️
                 </button>
             </div>
         </div>
@@ -76,16 +78,15 @@
     
     <script>
         const jsonData = {{ data | tojson }};
-        const lengthJSON = jsonData.length;
 
-        document.querySelector('.results-title').textContent = `📋 Resultados JSON: ${lengthJSON}`;
+        document.querySelector('.results-title').textContent = `📋 Resultados JSON: ${jsonData.length}`;
 
         function showContainer(className) {
-            document.querySelector(`.{className}`).hidden = false;
+            document.querySelector(`.${className}`).hidden = false;
         }
 
         function hideContainer(className) {
-            document.querySelector(`.{className}`).hidden = true;
+            document.querySelector(`.${className}`).hidden = true;
         }
 
         function showMessage(text, type) {
@@ -128,6 +129,7 @@
         
         async function sendDB() {
             showContainer('loader');
+            console.log('Enviando datos al servidor...');
             try {
                 const response = await fetch('/send-db', {
                     method: 'POST',

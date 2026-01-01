@@ -1,59 +1,31 @@
-import requests
-from bs4 import BeautifulSoup
+from flask import current_app
 
 from src.videogame_model import VideogameModel
 from src.platform_enum import PlatformScrapperEnum
+from src.app_requests import http_request
+from src.parsers import parse_list_games, parse_game
 
 def get_data(platform: str, page: int) -> list[dict]:
-	if platform == "nintendo-switch-2":
-		url = f'https://www.3djuegos.com/{platform}/juegos/{page if page > 0 else ""}'
-	else:
-		url = f'https://www.3djuegos.com/{platform}/juegos/mejores/{page if page > 0 else ""}'
-	web_data = requests.get(url)
-	soup = BeautifulSoup(web_data.content, 'html.parser')
+	platform_formatted = PlatformScrapperEnum[platform.replace("-", "_").upper()]
+	url_page = (current_app.config["URL_PARSER_SWITCH"] if platform_formatted == PlatformScrapperEnum.NINTENDO_SWITCH_2 else current_app.config["URL_PARSER"])
+	url_formatted = url_page.format(platform=platform, page=("" if page == 0 else page))
 	
-	links_games = soup.find_all('a', class_='s18i col_plat_i')
-	games_descriptions = soup.find_all("p", class_="mar_t3 mar_b5 c5")
+	html_web = http_request(url_formatted).content
+	
+	urls_games, games_descriptions = parse_list_games(html_web)
 	
 	games_data = []
 	
-	for link, description in zip(links_games, games_descriptions):
-		url = link.get('href')
-		web_data_game = requests.get(url)
-		soup_game = BeautifulSoup(web_data_game.content, 'html.parser')
-		
-		videogame = soup_game.find("article")
-		
-		release_and_pegi = videogame.find("dt", string="Lanzamiento:").next_sibling.text.strip()
-		limit = release_and_pegi.find("(")
-		release = (release_and_pegi[:limit] if limit != -1 else release_and_pegi).strip()
-		pegi = release_and_pegi[limit + 7:-1]
-		
-		tag_price = videogame.find("a", string=lambda t: t and "€" in t)
-		
-		price = None
-		
-		if tag_price:
-			tag_price = tag_price.text.strip()
-			limit = tag_price.find("€")
-			price = tag_price[limit - 5:limit].replace(",", ".")
-			
-		data_game = {
-			"title": videogame.find("h1").text,
-			"description": description.text,
-			"platform": getattr(PlatformScrapperEnum, platform.replace("-", "_").upper(), None).value,
-			"gender": videogame.find("dt", class_="edit_tematicas").next_element.next_element.next_element.text,
-			"img_url": videogame.find("img", class_="dib mar_b10").get("data-src"),
-			"release": release,
-			"pegi": pegi,
-			"price": price
-		}
-
+	for url, description in zip(urls_games, games_descriptions):
 		try:
-			videogame = VideogameModel(**data_game)
+			html_game = http_request(url).content
+			parsed_game = parse_game(html_game)
+			game = {**parsed_game, "description": description, "platform": platform_formatted}
+
+			videogame = VideogameModel(**game)
 			games_data.append(videogame.model_dump())
 		except Exception as e:
-			print(f"Error de validación '{data_game['title']}': {e}")
+			print(f"Error scraping '{game['title']}': {e}")
 			continue
 
 	return games_data

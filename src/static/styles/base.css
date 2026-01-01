@@ -20,6 +20,7 @@ body {
     padding: 40px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     max-width: 600px;
+    max-height: 90dvh;
     width: 100%;
 
     .error {
@@ -46,6 +47,20 @@ body {
         text-align: center;
         margin-bottom: 30px;
         color: #444;
+    }
+    .loader-container {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .loader {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #ddd;
+            border-top: 3px solid #333;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
     }
 
     .form-group {
@@ -101,4 +116,8 @@ body {
             transform: translateY(0);
         }
     }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }

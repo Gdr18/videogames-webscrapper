@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, jsonify, send_file
 from config import CONFIG
 
 from src.scraper import get_data
-from src.post_videogame import post_game
-from src.json_maker import create_json
+from src.app_requests import post_game_api
+from src.json_maker import create_json_file
 from src.platform_enum import PlatformScrapperEnum
 
 def create_app(config: dict) -> Flask:
@@ -22,7 +22,7 @@ def search(page):
     platform = request.form.get('platform', '')
     direction = request.form.get('direction', '')
     
-    if (not platform) or (platform.replace("-", "_").upper() not in [platform.name for platform in PlatformScrapperEnum]):
+    if (not platform) or (not platform.replace("-", "_").upper()):
         return render_template('index.html', error="Por favor selecciona una plataforma")
     
     page -= 1
@@ -30,9 +30,15 @@ def search(page):
     if direction:
         page += 1 if direction == 'next' else -1
     
-    data = get_data(platform, page)
-    
-    return render_template('results.html', platform=platform, data=data, page=page + 1)
+    try:
+        data = get_data(platform, page)
+        if not data or len(data) == 0:
+            raise ValueError("No hay datos")
+        
+        return render_template('results.html', platform=platform, data=data, page=page + 1)
+    except Exception as e:
+        print(f"Error en la búsqueda: {e}")
+        return render_template('index.html', error="Error al obtener los datos")
 
 @app.route('/download', methods=['POST'])
 def download_json():
@@ -40,10 +46,13 @@ def download_json():
     
     if not data or 'data' not in data:
         return jsonify({"error": "No hay datos para descargar"}), 400
-    
-    filepath, filename = create_json(data['data'])
-    
-    return send_file(filepath, as_attachment=True, download_name=filename)
+    try:
+        filepath, filename = create_json_file(data['data'])
+        
+        return send_file(filepath, as_attachment=True, download_name=filename)
+    except Exception as e:
+        print(f"Error al crear el archivo JSON: {e}")
+        return jsonify({"error": "Error al obtener el archivo JSON"}), 500
 
 @app.route('/send-db', methods=['POST'])
 def send_data():
@@ -57,8 +66,8 @@ def send_data():
     
     try:
         for game in games:
-            result = post_game(game)
-            if result == "success":
+            result = post_game_api(game)
+            if result:
                 success_count += 1
         
         return jsonify({
@@ -66,4 +75,5 @@ def send_data():
             "message": f"Se enviaron {success_count} registros a la base de datos"
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error al enviar los datos a la API: {e}")
+        return jsonify({"error": "Error al registrar los datos"}), 500
